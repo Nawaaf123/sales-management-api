@@ -1,0 +1,16 @@
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace SalesManagement.Api.DTOs;
+
+public class CreateProductRequest
+{
+    [Required]
+    [MinLength(2)]
+    public string Name { get; set; } = "";
+
+    [Range(0.01, double.MaxValue, ErrorMessage = "Price must be greater than 0")]
+    public decimal Price { get; set; }
+
+    [Range(0, int.MaxValue)]
+    public int Stock { get; set; }
+}
