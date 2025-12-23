@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using SalesManagement.Api.DTOs;
 using SalesManagement.Api.Services;
 
@@ -15,16 +16,42 @@ public class ProductsController : ControllerBase
         _service = service;
     }
 
+    // Everyone can view products
     [HttpGet]
     public IActionResult Get()
     {
         return Ok(_service.GetAll());
     }
 
+    // Admin only
     [HttpPost]
-    public IActionResult Create([FromBody] CreateProductRequest request)
+    [Authorize(Roles = "admin")]
+    public IActionResult Create(CreateProductRequest request)
     {
-        var product = _service.Create(request);
-        return Ok(product);
+        return Ok(_service.Create(request));
+    }
+
+    // Admin only
+    [HttpPut("{id}")]
+    [Authorize(Roles = "admin")]
+    public IActionResult Update(int id, UpdateProductRequest request)
+    {
+        var updated = _service.Update(id, request);
+        if (updated == null)
+            return NotFound(new { message = "Product not found" });
+
+        return Ok(updated);
+    }
+
+    // Admin only
+    [HttpDelete("{id}")]
+    [Authorize(Roles = "admin")]
+    public IActionResult Delete(int id)
+    {
+        var deleted = _service.Delete(id);
+        if (!deleted)
+            return NotFound(new { message = "Product not found" });
+
+        return NoContent();
     }
 }
