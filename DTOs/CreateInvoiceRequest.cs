@@ -1,14 +1,17 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace SalesManagement.Api.DTOs;
-
-public class CreateInvoiceRequest
+namespace SalesManagement.Api.DTOs
 {
-    [Required]
-    [MinLength(3)]
-    public string InvoiceNumber { get; set; } = "";
+    public class CreateInvoiceRequest
+    {
+        [Required]
+        [MinLength(3)]
+        public string InvoiceNumber { get; set; } = string.Empty;
 
-    [Required]
-    [Range(0.01, double.MaxValue, ErrorMessage = "Total must be greater than 0")]
-    public decimal Total { get; set; }
+        [Required]
+        public Guid ShopId { get; set; }
+
+        [Range(0.01, double.MaxValue)]
+        public decimal Total { get; set; }
+    }
 }

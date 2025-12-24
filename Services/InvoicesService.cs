@@ -1,50 +1,59 @@
-﻿using SalesManagement.Api.DTOs;
+﻿using Dapper;
+using SalesManagement.Api.Data;
+using SalesManagement.Api.DTOs;
 
-namespace SalesManagement.Api.Services;
-
-public class InvoicesService : IInvoicesService
+namespace SalesManagement.Api.Services
 {
-    private readonly List<InvoiceDto> _invoices = new();
-    private int _idCounter = 1;
-
-    public List<InvoiceDto> GetAll()
+    public class InvoicesService
     {
-        return _invoices;
-    }
+        private readonly DbConnectionFactory _factory;
 
-    public InvoiceDto Create(CreateInvoiceRequest request)
-    {
-        var invoice = new InvoiceDto
+        public InvoicesService(DbConnectionFactory factory)
         {
-            Id = _idCounter++,
-            InvoiceNumber = request.InvoiceNumber,
-            Total = request.Total,
-            CreatedAt = DateTime.UtcNow
-        };
+            _factory = factory;
+        }
 
-        _invoices.Add(invoice);
-        return invoice;
-    }
+        public async Task<IEnumerable<InvoiceDto>> GetAllAsync()
+        {
+            using var db = _factory.CreateConnection();
 
-    public InvoiceDto? Update(int id, UpdateInvoiceRequest request)
-    {
-        var invoice = _invoices.FirstOrDefault(i => i.Id == id);
-        if (invoice == null)
-            return null;
+            const string sql = @"
+                select
+                    id,
+                    invoice_number as InvoiceNumber,
+                    shop_id as ShopId,
+                    total_amount as Total,
+                    payment_status as PaymentStatus,
+                    created_at as CreatedAt
+                from invoices
+                order by created_at desc;
+            ";
 
-        invoice.InvoiceNumber = request.InvoiceNumber;
-        invoice.Total = request.Total;
+            return await db.QueryAsync<InvoiceDto>(sql);
+        }
 
-        return invoice;
-    }
+        public async Task CreateAsync(CreateInvoiceRequest request)
+        {
+            using var db = _factory.CreateConnection();
 
-    public bool Delete(int id)
-    {
-        var invoice = _invoices.FirstOrDefault(i => i.Id == id);
-        if (invoice == null)
-            return false;
+            const string sql = @"
+                insert into invoices
+                (
+                    invoice_number,
+                    shop_id,
+                    total_amount,
+                    payment_status
+                )
+                values
+                (
+                    @InvoiceNumber,
+                    @ShopId,
+                    @Total,
+                    'unpaid'
+                );
+            ";
 
-        _invoices.Remove(invoice);
-        return true;
+            await db.ExecuteAsync(sql, request);
+        }
     }
 }

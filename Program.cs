@@ -1,7 +1,10 @@
 using Microsoft.AspNetCore.Authentication;
-using SalesManagement.Api.Services;
-using SalesManagement.Api.Middleware;
 using SalesManagement.Api.Authentication;
+using SalesManagement.Api.Data;
+using SalesManagement.Api.Middleware;
+using SalesManagement.Api.Services;
+using Dapper;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,13 +37,16 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 
-builder.Services.AddSingleton<IInvoicesService, InvoicesService>();
-builder.Services.AddSingleton<IProductsService, ProductsService>();
+builder.Services.AddSingleton<DbConnectionFactory>();
+builder.Services.AddScoped<InvoicesService>();
+
 
 builder.Services.AddAuthentication("Mock")
     .AddScheme<AuthenticationSchemeOptions, MockAuthenticationHandler>("Mock", _ => { });
 
 builder.Services.AddAuthorization();
+builder.Services.AddSingleton<DbConnectionFactory>();
+
 
 var app = builder.Build();
 
