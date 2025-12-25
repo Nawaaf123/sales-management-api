@@ -49,6 +49,7 @@ builder.Services.AddSingleton<DbConnectionFactory>();
 
 
 var app = builder.Build();
+app.Run();
 
 app.UseSwagger();
 app.UseSwaggerUI();
