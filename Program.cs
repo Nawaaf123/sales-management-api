@@ -1,33 +1,35 @@
-using Microsoft.AspNetCore.Authentication;
+﻿using Microsoft.AspNetCore.Authentication;
 using SalesManagement.Api.Authentication;
 using SalesManagement.Api.Data;
 using SalesManagement.Api.Middleware;
 using SalesManagement.Api.Services;
-using Dapper;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// -------------------- SERVICES --------------------
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+
 builder.Services.AddSwaggerGen(c =>
 {
-    c.AddSecurityDefinition("X-ROLE", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    c.AddSecurityDefinition("X-ROLE", new OpenApiSecurityScheme
     {
         Name = "X-ROLE",
-        Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
-        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+        In = ParameterLocation.Header,
         Description = "Enter role: admin or salesman"
     });
 
-    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
-            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            new OpenApiSecurityScheme
             {
-                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                Reference = new OpenApiReference
                 {
-                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Type = ReferenceType.SecurityScheme,
                     Id = "X-ROLE"
                 }
             },
@@ -36,24 +38,24 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-
 builder.Services.AddSingleton<DbConnectionFactory>();
 builder.Services.AddScoped<InvoicesService>();
 
-
 builder.Services.AddAuthentication("Mock")
-    .AddScheme<AuthenticationSchemeOptions, MockAuthenticationHandler>("Mock", _ => { });
+    .AddScheme<AuthenticationSchemeOptions, MockAuthenticationHandler>(
+        "Mock", _ => { });
 
 builder.Services.AddAuthorization();
-builder.Services.AddSingleton<DbConnectionFactory>();
 
+// -------------------- APP --------------------
 
 var app = builder.Build();
-app.Run();
 
+// Swagger (enabled for now)
 app.UseSwagger();
 app.UseSwaggerUI();
 
+// Pipeline order matters
 app.UseHttpsRedirection();
 
 app.UseMiddleware<MockAuthMiddleware>();
@@ -61,6 +63,8 @@ app.UseMiddleware<MockAuthMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 
+// 🔥 THIS IS THE MOST IMPORTANT LINE
 app.MapControllers();
 
+// 🔥 ONLY ONE Run(), AT THE END
 app.Run();
