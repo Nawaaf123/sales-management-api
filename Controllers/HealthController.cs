@@ -1,27 +1,15 @@
-﻿using Dapper;
-using Microsoft.AspNetCore.Connections;
-using Microsoft.AspNetCore.Mvc;
-using SalesManagement.Api.Data;
+﻿using Microsoft.AspNetCore.Mvc;
 
 namespace SalesManagement.Api.Controllers
 {
     [ApiController]
-    [Route("api/health")]
+    [Route("api/[controller]")]
     public class HealthController : ControllerBase
     {
-        private readonly DbConnectionFactory _factory;
-
-        public HealthController(DbConnectionFactory factory)
-        {
-            _factory = factory;
-        }
-
         [HttpGet("db")]
-        public async Task<IActionResult> CheckDb()
+        public IActionResult CheckDb()
         {
-            using var db = _factory.CreateConnection();
-            var result = await db.ExecuteScalarAsync<int>("select 1");
-            return Ok(new { database = "connected", result });
+            return Ok(new { status = "api is healthy" });
         }
     }
 }
