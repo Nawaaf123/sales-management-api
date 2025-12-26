@@ -8,6 +8,8 @@ using Microsoft.OpenApi.Models;
 var builder = WebApplication.CreateBuilder(args);
 
 // -------------------- SERVICES --------------------
+builder.Configuration.AddEnvironmentVariables();
+
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
